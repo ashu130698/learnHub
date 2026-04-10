@@ -1,0 +1,42 @@
+
+services:
+
+  # ──────────────────────────────────────────
+  # MongoDB — our primary database
+  # ──────────────────────────────────────────
+  mongo:
+    image: mongo:7                        # Official MongoDB v7 image from Docker Hub
+    container_name: learnhub-mongo
+    ports:
+      - "27017:27017"                     # format is "host_port:container_port"
+                                          # localhost:27017 maps to mongo inside Docker
+    volumes:
+      - mongo-data:/data/db               # persist data even if container stops/restarts
+    environment:
+      MONGO_INITDB_DATABASE: learnhub     # creates this DB automatically on first run
+    healthcheck:                          # Docker won't start backend until this passes
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────────
+  # Redis — for caching + session storage
+  # ──────────────────────────────────────────
+  redis:
+    image: redis:7-alpine                 # alpine = minimal Linux, smaller image size
+    container_name: learnhub-redis
+    ports:
+      - "6379:6379"
+    command:
+      redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru      # when full: evict least-recently-used keys
+    volumes:
+      - redis-data:/data                  # persist cache across restarts
+
+# ──────────────────────────────────────────
+# Named volumes — Docker manages these on disk
+# Data survives container restarts because it lives here, not inside the container
+# ──────────────────────────────────────────
+volumes:
+  mongo-data:
+  redis-data:

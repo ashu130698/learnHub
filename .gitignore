@@ -1,0 +1,22 @@
+# Dependencies — never commit these, they're huge and platform-specific
+node_modules/
+
+# Environment files — contain secrets like DB passwords and JWT keys
+# .env is for local dev, .env.production is for the server
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Next.js build output
+.next/
+out/
+
+# Node/Express compiled output
+dist/
+build/
+
+# OS/editor clutter
+.DS_Store
+.vscode/settings.json
+*.log
