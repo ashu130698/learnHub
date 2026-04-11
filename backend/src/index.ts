@@ -1,22 +1,33 @@
 import { connectDatabase } from "./config/database";
 import redis from "./config/redis";
+import { User } from "./models/User";
 
 async function main() {
-  // Connect to MongoDB
   await connectDatabase();
-
-  // Connect to Redis
   await redis.connect();
 
-  // Quick test: set a value in Redis and read it back
-  await redis.set("test:ping", "pong", "EX", 10); // expires in 10 seconds
-  const value = await redis.get("test:ping");
-  console.log("Redis test:", value); // should print: Redis test: pong
+  // Create a test user
+  const user = await User.create({
+    email: "test@learnhub.com",
+    passwordHash: "plaintext123", // pre-save hook will hash this automatically
+    profile: { name: "Test User" },
+  });
 
-  console.log("✅ All systems connected");
+  console.log("Created user:", user.email, "| role:", user.role);
+  console.log("Password is hashed:", user.passwordHash.startsWith("$2"));
+
+  // Verify comparePassword works
+  const isValid = await user.comparePassword("plaintext123");
+  const isInvalid = await user.comparePassword("wrongpassword");
+  console.log("Correct password matches:", isValid); // true
+  console.log("Wrong password matches:", isInvalid); // false
+
+  // Clean up test data
+  await User.deleteOne({ email: "test@learnhub.com" });
+  console.log("✅ User model working correctly");
 }
 
 main().catch((err) => {
-  console.error("Startup failed:", err);
+  console.error(err);
   process.exit(1);
 });
