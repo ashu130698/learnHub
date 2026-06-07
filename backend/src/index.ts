@@ -1,30 +1,22 @@
 import { connectDatabase } from "./config/database";
 import redis from "./config/redis";
 import { User } from "./models/User";
+import { Module } from "./models/Module";
+import { Quiz } from "./models/Quiz";
+import { Progress } from "./models/Progress";
+import { Attempt } from "./models/Attempt";
 
 async function main() {
   await connectDatabase();
   await redis.connect();
 
-  // Create a test user
-  const user = await User.create({
-    email: "test@learnhub.com",
-    passwordHash: "plaintext123", // pre-save hook will hash this automatically
-    profile: { name: "Test User" },
-  });
-
-  console.log("Created user:", user.email, "| role:", user.role);
-  console.log("Password is hashed:", user.passwordHash.startsWith("$2"));
-
-  // Verify comparePassword works
-  const isValid = await user.comparePassword("plaintext123");
-  const isInvalid = await user.comparePassword("wrongpassword");
-  console.log("Correct password matches:", isValid); // true
-  console.log("Wrong password matches:", isInvalid); // false
-
-  // Clean up test data
-  await User.deleteOne({ email: "test@learnhub.com" });
-  console.log("✅ User model working correctly");
+  // Mongoose registers all models with MongoDB when imported
+  // This line confirms all 5 models loaded without errors
+  console.log(
+    "Models loaded:",
+    [User, Module, Quiz, Progress, Attempt].map((m) => m.modelName),
+  );
+  console.log("✅ All models ready");
 }
 
 main().catch((err) => {
