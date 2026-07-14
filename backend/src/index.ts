@@ -1,19 +1,15 @@
 import { connectDatabase } from "./config/database";
 import redis from "./config/redis";
-import { typeDefs } from "./graphql/typeDefs";
+import { resolvers } from "./graphql/resolvers";
 
 async function main() {
   await connectDatabase();
   await redis.connect();
 
-  // If typeDefs has any syntax error, this import throws at startup
-  // Confirming it loaded means the SDL is valid
-  console.log("TypeDefs kind:", typeDefs.kind); // should print: Document
-  console.log(
-    "Type definitions count:",
-    typeDefs.definitions.length, // number of types defined
-  );
-  console.log("✅ GraphQL schema loaded");
+  console.log("Queries:", Object.keys(resolvers.Query));
+  console.log("Mutations:", Object.keys(resolvers.Mutation));
+  console.log("Module fields:", Object.keys(resolvers.Module));
+  console.log("✅ All resolvers loaded");
 }
 
 main().catch((err) => {
