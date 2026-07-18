@@ -3,6 +3,7 @@ import { Module } from "../../models/Module";
 import { Quiz } from "../../models/Quiz";
 import { Attempt } from "../../models/Attempt";
 import { Progress } from "../../models/Progress";
+import { sendToUser } from "../../websocket/wsServer";
 import { getOrSet, invalidatePattern } from "../../config/redis";
 import type { Context } from "../context";
 
@@ -221,6 +222,17 @@ export const contentResolvers = {
       // Invalidate dashboard cache — user's stats changed
       await invalidatePattern(`dashboard:${user.sub}`);
 
+      // Notify client that lesson was marked complete
+      sendToUser(user.sub, {
+        type: "lesson_completed",
+        payload: {
+          lessonId,
+          moduleId,
+          status: progress!.status,
+        },
+        timestamp: new Date().toISOString(),
+      });
+
       return progress;
     },
 
@@ -282,6 +294,19 @@ export const contentResolvers = {
         score: Math.round(score * 100) / 100, // round to 2 decimal places
         passed,
         timeTakenSecs: input.timeTakenSecs,
+      });
+
+      // Notify client in real-time that quiz was submitted
+      // Client receives this instantly via WebSocket — no polling needed
+      sendToUser(user.sub, {
+        type: "quiz_submitted",
+        payload: {
+          moduleId: input.moduleId,
+          score: Math.round(score * 100) / 100,
+          passed,
+          timeTakenSecs: input.timeTakenSecs,
+        },
+        timestamp: new Date().toISOString(),
       });
 
       // Invalidate dashboard cache — attempt count and score changed
