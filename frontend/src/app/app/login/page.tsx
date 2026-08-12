@@ -10,10 +10,11 @@ import { useAuthStore } from "@/store/authStore";
 
 // Client-side validation — mirrors the server-side Zod schema
 // Catches obvious mistakes before making a network request
+// Login schema — v4 syntax
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email"),
-  password: z.string().min(1, "Password is required"),
-});
+  email: z.string().min(1, 'Email is required').email({ message: 'Please enter a valid email' }),
+  password: z.string().min(1, 'Password is required'),
+})
 
 type LoginForm = z.infer<typeof loginSchema>;
 

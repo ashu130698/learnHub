@@ -9,11 +9,12 @@ import { REGISTER_MUTATION } from "@/graphql/mutations";
 import { useAuthStore } from "@/store/authStore";
 
 // Mirrors backend's registerSchema exactly
+// Register schema — v4 syntax
 const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").max(50),
-  email: z.string().email("Please enter a valid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
+  name: z.string().min(2, 'Name must be at least 2 characters').max(50),
+  email: z.string().min(1, 'Email is required').email({ message: 'Please enter a valid email' }),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+})
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
